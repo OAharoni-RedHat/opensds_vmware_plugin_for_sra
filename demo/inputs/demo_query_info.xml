@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Command xmlns="http://www.vmware.com/srm/client">
+    <Name>queryInfo</Name>
+    <OutputFile>outputs/query_info_response.xml</OutputFile>
+    <LogDirectory>logs</LogDirectory>
+    <LogLevel>info</LogLevel>
+</Command>

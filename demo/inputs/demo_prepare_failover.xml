@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Command xmlns="http://www.vmware.com/srm/client">
+    <Name>prepareFailover</Name>
+    <PrepareFailoverParameters>
+        <ArrayId>210235G7H00002</ArrayId>
+        <SourceDevices>
+            <SourceDevice id="1001"/>
+            <SourceDevice id="1002"/>
+        </SourceDevices>
+    </PrepareFailoverParameters>
+    <Connections>
+        <Connection>
+            <Username>demo_admin</Username>
+            <Password>demo_password</Password>
+            <Addresses>
+                <Address>192.168.1.101</Address>
+            </Addresses>
+        </Connection>
+    </Connections>
+    <OutputFile>outputs/prepare_failover_response.xml</OutputFile>
+    <LogDirectory>logs</LogDirectory>
+    <LogLevel>info</LogLevel>
+</Command>

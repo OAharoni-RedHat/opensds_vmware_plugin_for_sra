@@ -1,0 +1,6 @@
+BandInfo=OceanStor_Demo
+ManuFactoryInfo=OpenSDS_Demo
+SraName=OpenSDS_Storage_SRA_Demo
+isSupportNfs=true
+isSupportStretched=true
+isFusionStorage=false

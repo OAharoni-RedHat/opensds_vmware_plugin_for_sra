@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Command xmlns="http://www.vmware.com/srm/client">
+    <Name>discoverArrays</Name>
+    <Connections>
+        <Connection>
+            <Username>invalid_user</Username>
+            <Password>invalid_password</Password>
+            <Addresses>
+                <Address>999.999.999.999</Address>
+            </Addresses>
+        </Connection>
+    </Connections>
+    <OutputFile>outputs/error_response.xml</OutputFile>
+    <LogDirectory>logs</LogDirectory>
+    <LogLevel>info</LogLevel>
+</Command>

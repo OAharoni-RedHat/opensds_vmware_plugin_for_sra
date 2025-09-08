@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Command xmlns="http://www.vmware.com/srm/client">
+    <Name>discoverArrays</Name>
+    <Connections>
+        <Connection>
+            <Username>demo_admin</Username>
+            <Password>demo_password</Password>
+            <Addresses>
+                <Address>192.168.1.100</Address>
+            </Addresses>
+        </Connection>
+    </Connections>
+    <OutputFile>outputs/discover_arrays_response.xml</OutputFile>
+    <LogDirectory>logs</LogDirectory>
+    <LogLevel>info</LogLevel>
+</Command>

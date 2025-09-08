@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Command xmlns="http://www.vmware.com/srm/client">
+    <Name>testFailoverStart</Name>
+    <TestFailoverStartParameters>
+        <ArrayId>210235G7H00002</ArrayId>
+        <TargetGroups>
+            <TargetGroup key="demo_test_group" isolationRequired="false">
+                <TargetDevices>
+                    <TargetDevice key="2001">
+                        <AccessGroups>
+                            <AccessGroup id="demo_host_group"/>
+                        </AccessGroups>
+                    </TargetDevice>
+                    <TargetDevice key="2002">
+                        <AccessGroups>
+                            <AccessGroup id="demo_host_group"/>
+                        </AccessGroups>
+                    </TargetDevice>
+                </TargetDevices>
+            </TargetGroup>
+        </TargetGroups>
+    </TestFailoverStartParameters>
+    <Connections>
+        <Connection>
+            <Username>demo_admin</Username>
+            <Password>demo_password</Password>
+            <Addresses>
+                <Address>192.168.1.101</Address>
+            </Addresses>
+        </Connection>
+    </Connections>
+    <OutputFile>outputs/test_failover_start_response.xml</OutputFile>
+    <LogDirectory>logs</LogDirectory>
+    <LogLevel>info</LogLevel>
+</Command>
