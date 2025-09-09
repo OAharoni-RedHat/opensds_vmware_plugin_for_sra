@@ -97,6 +97,7 @@ INCLUDE_DIRECTORIES(
 # --------------------------------------------------------------------------------
 LINK_DIRECTORIES(
 ${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/jsoncpp-1.9.5/lib
+${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/jsoncpp-1.9.5/lib64
 ${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/openssl-1.0.2j/lib
 ${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/curl-7.52.1/lib
 ${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/ACE-6.2.4/lib

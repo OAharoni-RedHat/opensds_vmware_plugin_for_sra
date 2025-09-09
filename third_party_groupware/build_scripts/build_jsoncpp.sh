@@ -85,9 +85,21 @@ mkdir -p "$INSTALL_DIR/bin"
 mkdir -p "$INSTALL_DIR/lib"
 mkdir -p "$INSTALL_DIR/include/json"
 
-# Verify installation
+# Create symlinks from lib64 to lib for compatibility if needed
+if [ -d "$INSTALL_DIR/lib64" ] && [ ! -f "$INSTALL_DIR/lib/libjsoncpp.so" ]; then
+    log_info "Creating compatibility symlinks from lib64 to lib..."
+    ln -sf ../lib64/libjsoncpp.so* "$INSTALL_DIR/lib/" 2>/dev/null || true
+    ln -sf ../lib64/libjsoncpp.a "$INSTALL_DIR/lib/" 2>/dev/null || true
+fi
+
+# Verify installation - check both lib and lib64 directories
+JSONCPP_LIB_FOUND=false
 if [ -f "$INSTALL_DIR/lib/libjsoncpp.so" ] || [ -f "$INSTALL_DIR/lib/libjsoncpp.a" ]; then
     log_info "jsoncpp libraries found in $INSTALL_DIR/lib"
+    JSONCPP_LIB_FOUND=true
+elif [ -f "$INSTALL_DIR/lib64/libjsoncpp.so" ] || [ -f "$INSTALL_DIR/lib64/libjsoncpp.a" ]; then
+    log_info "jsoncpp libraries found in $INSTALL_DIR/lib64"
+    JSONCPP_LIB_FOUND=true
 fi
 
 if [ -d "$INSTALL_DIR/include/json" ]; then
@@ -95,8 +107,10 @@ if [ -d "$INSTALL_DIR/include/json" ]; then
 fi
 
 # Also check for alternative library naming
-if [ -f "$INSTALL_DIR/lib/libjson.so" ] || [ -f "$INSTALL_DIR/lib/libjson.a" ]; then
+if [ -f "$INSTALL_DIR/lib/libjson.so" ] || [ -f "$INSTALL_DIR/lib/libjson.a" ] || \
+   [ -f "$INSTALL_DIR/lib64/libjson.so" ] || [ -f "$INSTALL_DIR/lib64/libjson.a" ]; then
     log_info "jsoncpp libraries found with alternative naming"
+    JSONCPP_LIB_FOUND=true
 fi
 
 cd "$BUILD_DIR"
@@ -105,8 +119,9 @@ log_info "build jsoncpp end"
 
 # Check for build success
 build_failed=false
-if [ ! -f "$INSTALL_DIR/lib/libjsoncpp.so" ] && [ ! -f "$INSTALL_DIR/lib/libjsoncpp.a" ] && \
-   [ ! -f "$INSTALL_DIR/lib/libjson.so" ] && [ ! -f "$INSTALL_DIR/lib/libjson.a" ]; then
+
+# Check for libraries in both lib and lib64
+if [ "$JSONCPP_LIB_FOUND" = false ]; then
     build_failed=true
 fi
 
@@ -125,7 +140,8 @@ else
     
     # List what was actually built
     log_info "jsoncpp libraries built:"
-    ls -la "$INSTALL_DIR/lib/" | grep -i json || true
+    ls -la "$INSTALL_DIR/lib/" 2>/dev/null | grep -i json || true
+    ls -la "$INSTALL_DIR/lib64/" 2>/dev/null | grep -i json || true
     
     exit_code=0
 fi
