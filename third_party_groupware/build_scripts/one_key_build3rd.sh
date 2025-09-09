@@ -73,7 +73,11 @@ check_build_result "libssh2" "build libssh2 fail"
 echo ""
 echo "Step 4/7: Building curl..."
 log_info "Building curl..."
-./build_curl.sh
+./build_curl.sh || {
+    echo "Regular curl build failed, trying minimal curl build..."
+    log_info "Regular curl build failed, trying minimal curl build..."
+    ./build_curl_minimal.sh
+}
 check_build_result "curl" "build libcurl fail"
 
 # Build ACE

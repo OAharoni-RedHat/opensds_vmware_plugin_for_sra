@@ -60,6 +60,13 @@ fi
 
 cd "curl-$CURL_VERSION-src"
 
+# Clean any previous configuration
+if [ -f "Makefile" ]; then
+    log_info "Cleaning previous build..."
+    make clean || true
+fi
+rm -f config.cache config.log config.status
+
 log_info "build libcurl, please wait..."
 log_info "start compiling libcurl..."
 
@@ -104,8 +111,15 @@ export LD_LIBRARY_PATH="$ALL_LIB_PATHS:$LD_LIBRARY_PATH"
 export LDFLAGS="-L${ALL_LIB_PATHS//:/ -L} $LDFLAGS"
 export CPPFLAGS="-I$OPENSSL_DIR/include -I$ZLIB_DIR/include -I$LIBSSH2_DIR/include $CPPFLAGS"
 
-# Disable runtime library checks that are causing issues
+# Prevent curl from finding system libraries by clearing common paths
+export PKG_CONFIG_LIBDIR="$ALL_PKG_CONFIG_PATHS"
+export LIBRARY_PATH="$ALL_LIB_PATHS"
+
+# Disable problematic features and system libraries that cause runtime issues
 CONFIGURE_OPTIONS="$CONFIGURE_OPTIONS --disable-rtsp --disable-ldap --disable-ldaps"
+CONFIGURE_OPTIONS="$CONFIGURE_OPTIONS --without-nghttp2 --without-libidn2 --without-libpsl"
+CONFIGURE_OPTIONS="$CONFIGURE_OPTIONS --without-brotli --without-librtmp --without-libmetalink"
+CONFIGURE_OPTIONS="$CONFIGURE_OPTIONS --disable-pthreads --disable-threaded-resolver"
 
 # Add RPATH to ensure runtime libraries are found
 if [ -n "$ALL_LIB_PATHS" ]; then
@@ -120,9 +134,22 @@ log_info "LDFLAGS: $LDFLAGS"
 
 # Try configuration with runtime checks disabled on failure
 ./configure $CONFIGURE_OPTIONS || {
-    log_info "Configuration failed, trying with runtime checks disabled..."
-    CONFIGURE_OPTIONS="$CONFIGURE_OPTIONS --disable-shared --enable-static"
-    ./configure $CONFIGURE_OPTIONS
+    log_info "Configuration failed, trying with minimal static build..."
+    
+    # Reset to minimal configuration
+    MINIMAL_OPTIONS="--prefix=$INSTALL_DIR --disable-shared --enable-static"
+    MINIMAL_OPTIONS="$MINIMAL_OPTIONS --with-ssl=$OPENSSL_DIR --with-zlib=$ZLIB_DIR"
+    MINIMAL_OPTIONS="$MINIMAL_OPTIONS --without-libssh2 --without-nghttp2 --without-libidn2 --without-libpsl"
+    MINIMAL_OPTIONS="$MINIMAL_OPTIONS --disable-rtsp --disable-ldap --disable-ldaps --disable-ftp"
+    MINIMAL_OPTIONS="$MINIMAL_OPTIONS --disable-file --disable-dict --disable-telnet --disable-tftp"
+    MINIMAL_OPTIONS="$MINIMAL_OPTIONS --disable-pop3 --disable-imap --disable-smb --disable-smtp"
+    MINIMAL_OPTIONS="$MINIMAL_OPTIONS --disable-gopher --disable-manual --disable-libcurl-option"
+    
+    log_info "Trying minimal configuration: $MINIMAL_OPTIONS"
+    ./configure $MINIMAL_OPTIONS || {
+        log_error "Even minimal configuration failed. Check dependencies."
+        exit 1
+    }
 }
 
 log_info "Building curl..."
