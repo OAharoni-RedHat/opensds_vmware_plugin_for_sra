@@ -92,7 +92,11 @@ check_build_result "curl" "build libcurl fail"
 echo ""
 echo "Step 5/7: Building ACE..."
 log_info "Building ACE..."
-./build_ACE.sh
+./build_ACE.sh || {
+    echo "Regular ACE build failed, trying minimal ACE build..."
+    log_info "Regular ACE build failed, trying minimal ACE build..."
+    ./build_ACE_minimal.sh
+}
 check_build_result "ACE" "build ACE fail"
 
 # Build jsoncpp
