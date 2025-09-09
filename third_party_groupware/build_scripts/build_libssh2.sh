@@ -12,8 +12,8 @@ echo "************************************************************"
 # Get current directory and set paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
-LIBSSH2_VERSION="1.7.0"
-LIBSSH2_DIR="$BUILD_DIR/libssh2-$LIBSSH2_VERSION"
+LIBSSH2_VERSION="1.10.0"
+LIBSSH2_SOURCE_DIR="$BUILD_DIR/libssh2-$LIBSSH2_VERSION-src"
 INSTALL_DIR="$BUILD_DIR/libssh2-$LIBSSH2_VERSION"
 
 # Dependencies
@@ -50,12 +50,14 @@ if [ ! -f "libssh2-$LIBSSH2_VERSION.tar.gz" ]; then
 fi
 
 # Extract and build libssh2
-if [ ! -d "libssh2-$LIBSSH2_VERSION" ]; then
+if [ ! -d "libssh2-$LIBSSH2_VERSION-src" ]; then
     log_info "Extracting libssh2..."
     tar -xzf "libssh2-$LIBSSH2_VERSION.tar.gz"
+    # Move to source directory with different name to avoid conflicts
+    mv "libssh2-$LIBSSH2_VERSION" "libssh2-$LIBSSH2_VERSION-src"
 fi
 
-cd "libssh2-$LIBSSH2_VERSION"
+cd "libssh2-$LIBSSH2_VERSION-src"
 
 log_info "build libssh2, please wait..."
 log_info "start compiling libssh2..."
@@ -69,6 +71,9 @@ if [ -d "$OPENSSL_DIR" ]; then
     CONFIGURE_OPTIONS="$CONFIGURE_OPTIONS --with-openssl=$OPENSSL_DIR"
     export PKG_CONFIG_PATH="$OPENSSL_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
     export LD_LIBRARY_PATH="$OPENSSL_DIR/lib:$LD_LIBRARY_PATH"
+    # Force use of our OpenSSL instead of system OpenSSL
+    export CPPFLAGS="-I$OPENSSL_DIR/include $CPPFLAGS"
+    export LDFLAGS="-L$OPENSSL_DIR/lib $LDFLAGS"
 fi
 
 # Add zlib support if available
@@ -80,6 +85,10 @@ if [ -d "$ZLIB_DIR" ]; then
 fi
 
 log_info "Configuring libssh2 with options: $CONFIGURE_OPTIONS"
+
+# Add flags to handle OpenSSL compatibility issues
+export CFLAGS="-Wno-deprecated-declarations -DOPENSSL_API_COMPAT=0x10100000L $CFLAGS"
+
 ./configure $CONFIGURE_OPTIONS
 
 log_info "Building libssh2..."
