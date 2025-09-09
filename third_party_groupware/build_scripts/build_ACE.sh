@@ -58,12 +58,23 @@ export ACE_ROOT="$PWD"
 
 log_info "Configuring ACE..."
 # Create config files for Linux with modern compatibility
-echo '#include "ace/config-linux.h"' > ace/config.h
+cat > ace/config.h << 'EOF'
+#include "ace/config-linux.h"
+#define ACE_LACKS_STROPTS_H 1
+#define ACE_HAS_CPU_SET_T 1
+EOF
+
 echo 'include $(ACE_ROOT)/include/makeinclude/platform_linux.GNU' > include/makeinclude/platform_macros.GNU
 
-# Add modern compiler compatibility flags
-echo 'CPPFLAGS += -Wno-deprecated-declarations -Wno-unused-variable -Wno-implicit-fallthrough' >> include/makeinclude/platform_macros.GNU
-echo 'CCFLAGS += -Wno-deprecated-declarations -Wno-unused-variable -Wno-implicit-fallthrough' >> include/makeinclude/platform_macros.GNU
+# Add modern compiler compatibility flags and disable problematic features
+cat >> include/makeinclude/platform_macros.GNU << 'EOF'
+CPPFLAGS += -Wno-deprecated-declarations -Wno-unused-variable -Wno-implicit-fallthrough -DACE_LACKS_STROPTS_H -DACE_HAS_CPU_SET_T
+CCFLAGS += -Wno-deprecated-declarations -Wno-unused-variable -Wno-implicit-fallthrough -DACE_LACKS_STROPTS_H -DACE_HAS_CPU_SET_T
+ace_no_ace = 0
+ace_no_nameservice = 1
+ace_no_tests = 1
+ace_no_examples = 1
+EOF
 
 # Enable SSL support if OpenSSL is available
 OPENSSL_DIR="$BUILD_DIR/openssl-1.0.2j"
@@ -74,11 +85,28 @@ if [ -d "$OPENSSL_DIR" ]; then
     echo "PLATFORM_SSL_LDFLAGS += -L$OPENSSL_DIR/lib" >> include/makeinclude/platform_macros.GNU
 fi
 
+log_info "Patching ACE source files..."
+# Patch problematic header files
+if [ -f "ace/os_include/os_stropts.h" ]; then
+    sed -i 's/#  include \/\*\*\/ <stropts.h>/#ifdef ACE_HAS_STROPTS_H\n#  include \/\*\*\/ <stropts.h>\n#endif/' ace/os_include/os_stropts.h
+fi
+
+if [ -f "ace/os_include/os_sched.h" ]; then
+    sed -i '/typedef struct cpu_set_t cpu_set_t;/d' ace/os_include/os_sched.h
+    sed -i '/} cpu_set_t;/d' ace/os_include/os_sched.h
+fi
+
 log_info "Compiling ACE..."
 echo "build ACE, please wait..."
 
-# Build ACE
-make -j$(nproc)
+# Try to build only the core ACE library
+cd ace
+make -j$(nproc) || {
+    log_info "Parallel build failed, trying single thread..."
+    make clean
+    make
+}
+cd ..
 
 log_info "Copying compiled files..."
 # Create installation directory structure

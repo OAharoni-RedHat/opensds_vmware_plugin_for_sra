@@ -59,16 +59,27 @@ export ACE_ROOT="$PWD"
 
 log_info "Configuring ACE (minimal mode)..."
 # Create config files for Linux with maximum compatibility
-echo '#include "ace/config-linux.h"' > ace/config.h
+cat > ace/config.h << 'EOF'
+#include "ace/config-linux.h"
+#define ACE_LACKS_STROPTS_H 1
+#define ACE_HAS_CPU_SET_T 1
+#define ACE_LACKS_STREAMS_ENVIRONMENT 1
+#define ACE_LACKS_XTI 1
+EOF
+
 echo 'include $(ACE_ROOT)/include/makeinclude/platform_linux.GNU' > include/makeinclude/platform_macros.GNU
 
-# Add maximum compatibility flags
-echo 'CPPFLAGS += -Wno-deprecated-declarations -Wno-unused-variable -Wno-implicit-fallthrough -Wno-error' >> include/makeinclude/platform_macros.GNU
-echo 'CCFLAGS += -Wno-deprecated-declarations -Wno-unused-variable -Wno-implicit-fallthrough -Wno-error -w' >> include/makeinclude/platform_macros.GNU
-
-# Disable problematic features
-echo 'ace_no_stropts = 1' >> include/makeinclude/platform_macros.GNU
-echo 'ace_with_x11 = 0' >> include/makeinclude/platform_macros.GNU
+# Add maximum compatibility flags and disable all problematic features
+cat >> include/makeinclude/platform_macros.GNU << 'EOF'
+CPPFLAGS += -Wno-deprecated-declarations -Wno-unused-variable -Wno-implicit-fallthrough -Wno-error -DACE_LACKS_STROPTS_H -DACE_HAS_CPU_SET_T
+CCFLAGS += -Wno-deprecated-declarations -Wno-unused-variable -Wno-implicit-fallthrough -Wno-error -w -DACE_LACKS_STROPTS_H -DACE_HAS_CPU_SET_T
+ace_no_stropts = 1
+ace_with_x11 = 0
+ace_no_nameservice = 1
+ace_no_tests = 1
+ace_no_examples = 1
+ace_no_apps = 1
+EOF
 
 # Enable SSL support if OpenSSL is available
 OPENSSL_DIR="$BUILD_DIR/openssl-1.0.2j"
@@ -79,18 +90,39 @@ if [ -d "$OPENSSL_DIR" ]; then
     echo "PLATFORM_SSL_LDFLAGS += -L$OPENSSL_DIR/lib" >> include/makeinclude/platform_macros.GNU
 fi
 
+log_info "Patching ACE source files (aggressive)..."
+# Aggressively patch problematic header files
+if [ -f "ace/os_include/os_stropts.h" ]; then
+    # Completely disable stropts.h inclusion
+    sed -i 's/#  include \/\*\*\/ <stropts.h>/\/\* stropts.h disabled for modern Linux \*\//' ace/os_include/os_stropts.h
+fi
+
+if [ -f "ace/os_include/os_sched.h" ]; then
+    # Remove conflicting cpu_set_t definition
+    sed -i '/struct cpu_set_t/,/} cpu_set_t;/d' ace/os_include/os_sched.h
+fi
+
+# Patch Name Service related files that use stropts
+for file in ace/Name_*.cpp; do
+    if [ -f "$file" ]; then
+        sed -i 's/#include "ace\/OS_NS_stropts.h"/\/\* stropts disabled \*\//' "$file"
+    fi
+done
+
 log_info "Compiling ACE (minimal)..."
 echo "build ACE (minimal), please wait..."
 
 # Build only essential ACE components
+cd ace
 make -j$(nproc) || {
-    log_info "Full build failed, trying core components only..."
-    cd ace
-    make -j$(nproc) || {
-        log_info "Even core build failed, trying with single thread..."
-        make
+    log_info "Parallel build failed, trying single thread..."
+    make clean
+    make || {
+        log_info "Core build also failed, trying with minimal targets..."
+        make libACE.so || make libACE.a
     }
 }
+cd ..
 
 log_info "Copying compiled files..."
 # Create installation directory structure
