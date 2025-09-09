@@ -55,25 +55,25 @@ chmod +x *.bat
 # You may need to convert these to .sh or run manually
 
 # 1. Build zlib
-./build_zlib_86.bat
+
 
 # 2. Build OpenSSL
-./build_openssl.bat
+./build_openssl.sh
 
 # 3. Build libssh2
-./build_libssh2.bat
+./build_libssh2.sh
 
 # 4. Build curl
-./build_curl.bat
+./build_curl.sh
 
 # 5. Build jsoncpp
-./build_jsoncpp.bat
+./build_jsoncpp.sh
 
 # 6. Build TinyXML
-./build_tinyxml.bat
+./build_tinyxml.sh
 
 # 7. Build ACE (most complex dependency)
-./build_ACE.bat
+./build_ACE.sh
 ```
 
 ### 3. Manual Third-Party Build (Alternative Approach)
@@ -145,7 +145,31 @@ cd ..
 # Create TlvCom library (if not built by ACE)
 cd TlvCom
 mkdir -p lib
-g++ -fPIC -shared -o lib/libTLVCom.so -I../common/os -I../../third_party_groupware/build_scripts/build/ACE-6.2.4/include msg_package.cpp om_connecter.cpp
+
+# First, determine which ACE version was successfully built
+ACE_INCLUDE_DIR=""
+for ace_dir in ../../third_party_groupware/build_scripts/build/ACE-*/include; do
+    if [ -d "$ace_dir" ] && [ -f "$ace_dir/ace/OS.h" ]; then
+        ACE_INCLUDE_DIR="$ace_dir"
+        break
+    fi
+done
+
+if [ -z "$ACE_INCLUDE_DIR" ]; then
+    echo "Error: ACE headers not found. Please build ACE first."
+    exit 1
+fi
+
+echo "Using ACE headers from: $ACE_INCLUDE_DIR"
+
+# Build TlvCom with correct ACE path
+g++ -fPIC -shared -o lib/libTLVCom.so \
+    -I../common/os \
+    -I"$ACE_INCLUDE_DIR" \
+    -DACE_LACKS_SSL=1 \
+    -Wno-deprecated-declarations \
+    msg_package.cpp om_connecter.cpp
+
 cd ..
 
 # Build the main SRA executable
