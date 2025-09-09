@@ -13,7 +13,7 @@ echo "************************************************************"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
 ZLIB_VERSION="1.2.11"
-ZLIB_DIR="$BUILD_DIR/zlib-$ZLIB_VERSION"
+ZLIB_SOURCE_DIR="$BUILD_DIR/zlib-$ZLIB_VERSION-src"
 INSTALL_DIR="$BUILD_DIR/zlib-$ZLIB_VERSION"
 
 # Create build directory
@@ -46,12 +46,14 @@ if [ ! -f "zlib-$ZLIB_VERSION.tar.gz" ]; then
 fi
 
 # Extract and build zlib
-if [ ! -d "zlib-$ZLIB_VERSION" ]; then
+if [ ! -d "zlib-$ZLIB_VERSION-src" ]; then
     log_info "Extracting zlib..."
     tar -xzf "zlib-$ZLIB_VERSION.tar.gz"
+    # Move to source directory with different name to avoid conflicts
+    mv "zlib-$ZLIB_VERSION" "zlib-$ZLIB_VERSION-src"
 fi
 
-cd "zlib-$ZLIB_VERSION"
+cd "zlib-$ZLIB_VERSION-src"
 
 log_info "Configuring zlib..."
 ./configure --prefix="$INSTALL_DIR" --shared

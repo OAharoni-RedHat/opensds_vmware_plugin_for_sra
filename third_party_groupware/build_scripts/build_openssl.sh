@@ -14,7 +14,7 @@ echo "************************************************************"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
 OPENSSL_VERSION="1.0.2j"
-OPENSSL_DIR="$BUILD_DIR/openssl-$OPENSSL_VERSION"
+OPENSSL_SOURCE_DIR="$BUILD_DIR/openssl-$OPENSSL_VERSION-src"
 INSTALL_DIR="$BUILD_DIR/openssl-$OPENSSL_VERSION"
 
 # Create build directory
@@ -53,12 +53,14 @@ if [ ! -f "openssl-$OPENSSL_VERSION.tar.gz" ]; then
 fi
 
 # Extract and build OpenSSL
-if [ ! -d "openssl-$OPENSSL_VERSION" ]; then
+if [ ! -d "openssl-$OPENSSL_VERSION-src" ]; then
     log_info "Extracting OpenSSL..."
     tar -xzf "openssl-$OPENSSL_VERSION.tar.gz"
+    # Move to source directory with different name to avoid conflicts
+    mv "openssl-$OPENSSL_VERSION" "openssl-$OPENSSL_VERSION-src"
 fi
 
-cd "openssl-$OPENSSL_VERSION"
+cd "openssl-$OPENSSL_VERSION-src"
 
 log_info "Configuring OpenSSL..."
 # Configure for Linux with shared libraries
