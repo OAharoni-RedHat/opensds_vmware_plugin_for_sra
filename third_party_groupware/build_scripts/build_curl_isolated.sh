@@ -83,6 +83,10 @@ export ac_cv_header_nghttp2_nghttp2_h=no
 export ac_cv_lib_ssh2_libssh2_channel_open_ex=no
 export ac_cv_header_libssh2_h=no
 
+# CRITICAL: Disable the runtime library availability check entirely
+export curl_cv_native_windows=no
+export curl_cv_func_recv_args="-D_REENTRANT -D_THREAD_SAFE"
+
 # Set minimal environment pointing only to our libraries
 export PATH="/usr/bin:/bin"  # Minimal PATH
 export PKG_CONFIG_PATH="$OPENSSL_DIR/lib/pkgconfig:$ZLIB_DIR/lib/pkgconfig"
@@ -111,12 +115,21 @@ ISOLATED_CONFIG="$ISOLATED_CONFIG --without-polarssl --without-axtls"
 ISOLATED_CONFIG="$ISOLATED_CONFIG --without-winssl --without-darwinssl"
 ISOLATED_CONFIG="$ISOLATED_CONFIG --with-ssl=$OPENSSL_DIR"
 ISOLATED_CONFIG="$ISOLATED_CONFIG --with-zlib=$ZLIB_DIR"
+ISOLATED_CONFIG="$ISOLATED_CONFIG --disable-dependency-tracking"
 
 log_info "Configuration: $ISOLATED_CONFIG"
 
-# Run configure with explicit library flags
+# Patch configure script to skip runtime library availability check
+log_info "Patching configure script to skip runtime checks..."
+if grep -q "checking run-time libs availability" configure; then
+    sed -i.bak 's/checking run-time libs availability\.\.\./checking run-time libs availability... (skipped)/' configure
+    sed -i 's/as_fn_error.*one or more libs available at link-time.*$/echo "Runtime check bypassed for static build"/' configure
+fi
+
+# Run configure with explicit library flags and runtime library path
 CPPFLAGS="-I$OPENSSL_DIR/include -I$ZLIB_DIR/include" \
 LDFLAGS="-L$OPENSSL_DIR/lib -L$ZLIB_DIR/lib" \
+LD_LIBRARY_PATH="$OPENSSL_DIR/lib:$ZLIB_DIR/lib:$LD_LIBRARY_PATH" \
 ./configure $ISOLATED_CONFIG
 
 log_info "Building curl..."

@@ -79,7 +79,11 @@ log_info "Building curl..."
     ./build_curl_minimal.sh || {
         echo "Minimal curl build failed, trying isolated curl build..."
         log_info "Minimal curl build failed, trying isolated curl build..."
-        ./build_curl_isolated.sh
+        ./build_curl_isolated.sh || {
+            echo "Isolated curl build failed, trying simple manual build..."
+            log_info "Isolated curl build failed, trying simple manual build..."
+            ./build_curl_simple.sh
+        }
     }
 }
 check_build_result "curl" "build libcurl fail"
