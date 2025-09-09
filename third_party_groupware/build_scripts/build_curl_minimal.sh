@@ -65,11 +65,25 @@ rm -f config.cache config.log config.status
 
 log_info "Configuring minimal curl build..."
 
-# Set up environment to use only our libraries
+# Completely isolate build environment from system libraries
+unset PKG_CONFIG_PATH
+unset PKG_CONFIG_LIBDIR
+unset LIBRARY_PATH
+unset C_INCLUDE_PATH
+unset CPLUS_INCLUDE_PATH
+
+# Set up environment to use ONLY our libraries
 export PKG_CONFIG_PATH="$OPENSSL_DIR/lib/pkgconfig:$ZLIB_DIR/lib/pkgconfig"
+export PKG_CONFIG_LIBDIR="$OPENSSL_DIR/lib/pkgconfig:$ZLIB_DIR/lib/pkgconfig"
 export LD_LIBRARY_PATH="$OPENSSL_DIR/lib:$ZLIB_DIR/lib"
 export CPPFLAGS="-I$OPENSSL_DIR/include -I$ZLIB_DIR/include"
 export LDFLAGS="-L$OPENSSL_DIR/lib -L$ZLIB_DIR/lib -Wl,-rpath,$OPENSSL_DIR/lib -Wl,-rpath,$ZLIB_DIR/lib"
+
+# Explicitly tell configure where libraries are and aren't
+export ac_cv_lib_idn2_idn2_to_ascii_8z=no
+export ac_cv_lib_idn_idna_to_ascii_4i=no
+export ac_cv_header_idn2_h=no
+export ac_cv_header_idna_h=no
 
 # Minimal configuration - only HTTPS support, no problematic libraries
 MINIMAL_CONFIG="--prefix=$INSTALL_DIR"
@@ -78,12 +92,14 @@ MINIMAL_CONFIG="$MINIMAL_CONFIG --disable-ldap --disable-ldaps --disable-rtsp --
 MINIMAL_CONFIG="$MINIMAL_CONFIG --disable-dict --disable-telnet --disable-tftp --disable-pop3"
 MINIMAL_CONFIG="$MINIMAL_CONFIG --disable-imap --disable-smb --disable-smtp --disable-gopher"
 MINIMAL_CONFIG="$MINIMAL_CONFIG --disable-manual --disable-libcurl-option --disable-sspi"
-MINIMAL_CONFIG="$MINIMAL_CONFIG --without-libssh2 --without-nghttp2 --without-libidn2"
+MINIMAL_CONFIG="$MINIMAL_CONFIG --without-libssh2 --without-nghttp2 --without-libidn2 --without-libidn"
 MINIMAL_CONFIG="$MINIMAL_CONFIG --without-libpsl --without-brotli --without-librtmp"
-MINIMAL_CONFIG="$MINIMAL_CONFIG --without-libmetalink --without-libgsasl"
+MINIMAL_CONFIG="$MINIMAL_CONFIG --without-libmetalink --without-libgsasl --without-ca-bundle"
+MINIMAL_CONFIG="$MINIMAL_CONFIG --without-ca-path --without-cyassl --without-polarssl"
+MINIMAL_CONFIG="$MINIMAL_CONFIG --without-nss --without-axtls --without-winssl --without-darwinssl"
 MINIMAL_CONFIG="$MINIMAL_CONFIG --with-ssl=$OPENSSL_DIR --with-zlib=$ZLIB_DIR"
 MINIMAL_CONFIG="$MINIMAL_CONFIG --enable-static --disable-shared"
-MINIMAL_CONFIG="$MINIMAL_CONFIG --disable-dependency-tracking"
+MINIMAL_CONFIG="$MINIMAL_CONFIG --disable-dependency-tracking --disable-symbol-hiding"
 
 log_info "Configuration options: $MINIMAL_CONFIG"
 
