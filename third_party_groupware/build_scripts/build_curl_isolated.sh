@@ -60,7 +60,7 @@ cd "curl-$CURL_VERSION-isolated"
 # Clean everything
 log_info "Cleaning build environment..."
 make distclean || true
-rm -f config.cache config.log config.status
+rm -f config.cache config.log config.status lib/curl_config.h
 rm -rf autom4te.cache
 
 # Create completely isolated environment
@@ -85,7 +85,7 @@ export ac_cv_header_libssh2_h=no
 
 # CRITICAL: Disable the runtime library availability check entirely
 export curl_cv_native_windows=no
-export curl_cv_func_recv_args="-D_REENTRANT -D_THREAD_SAFE"
+# Let curl detect recv function properly - don't override it
 
 # Set minimal environment pointing only to our libraries
 export PATH="/usr/bin:/bin"  # Minimal PATH
