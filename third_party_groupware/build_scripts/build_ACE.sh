@@ -74,6 +74,10 @@ ace_no_ace = 0
 ace_no_nameservice = 1
 ace_no_tests = 1
 ace_no_examples = 1
+ace_no_apps = 1
+ace_no_other_libs = 1
+ACELIB_COMPONENTS = ACE
+ACELIB_DIRS = ace
 EOF
 
 # Enable SSL support if OpenSSL is available
@@ -94,6 +98,28 @@ fi
 if [ -f "ace/os_include/os_sched.h" ]; then
     sed -i '/typedef struct cpu_set_t cpu_set_t;/d' ace/os_include/os_sched.h
     sed -i '/} cpu_set_t;/d' ace/os_include/os_sched.h
+fi
+
+# Disable Name Service components that are causing issues
+log_info "Disabling problematic ACE components..."
+for name_file in ace/Local_Name_Space.cpp ace/Name_Proxy.cpp ace/Name_Request_Reply.cpp ace/Name_Space.cpp ace/Naming_Context.cpp ace/Registry_Name_Space.cpp ace/Remote_Name_Space.cpp; do
+    if [ -f "$name_file" ]; then
+        mv "$name_file" "$name_file.disabled"
+        log_info "Disabled $name_file"
+    fi
+done
+
+# Create a minimal Makefile for ace directory that only builds core components
+if [ -f "ace/GNUmakefile.ACE" ]; then
+    cp ace/GNUmakefile.ACE ace/GNUmakefile.ACE.backup
+    # Remove name service related files from the makefile
+    sed -i '/Local_Name_Space/d' ace/GNUmakefile.ACE
+    sed -i '/Name_Proxy/d' ace/GNUmakefile.ACE
+    sed -i '/Name_Request_Reply/d' ace/GNUmakefile.ACE
+    sed -i '/Name_Space/d' ace/GNUmakefile.ACE
+    sed -i '/Naming_Context/d' ace/GNUmakefile.ACE
+    sed -i '/Registry_Name_Space/d' ace/GNUmakefile.ACE
+    sed -i '/Remote_Name_Space/d' ace/GNUmakefile.ACE
 fi
 
 log_info "Compiling ACE..."

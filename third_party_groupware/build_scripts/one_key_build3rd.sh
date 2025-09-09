@@ -95,7 +95,11 @@ log_info "Building ACE..."
 ./build_ACE.sh || {
     echo "Regular ACE build failed, trying minimal ACE build..."
     log_info "Regular ACE build failed, trying minimal ACE build..."
-    ./build_ACE_minimal.sh
+    ./build_ACE_minimal.sh || {
+        echo "Minimal ACE build failed, trying core-only ACE build..."
+        log_info "Minimal ACE build failed, trying core-only ACE build..."
+        ./build_ACE_core.sh
+    }
 }
 check_build_result "ACE" "build ACE fail"
 
