@@ -1,18 +1,18 @@
 #!/bin/bash
 
-# Linux shell script equivalent of build_jsoncpp.bat
-# Builds jsoncpp library for OpenSDS SRA
+# Compatibility jsoncpp build - uses latest version with maximum compatibility flags
+# For systems with very strict compilers
 
 set -e  # Exit on error
 
 echo "************************************************************"
-echo "Start building jsoncpp..."
+echo "Start building jsoncpp (compatibility mode)..."
 echo "************************************************************"
 
 # Get current directory and set paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
-JSONCPP_VERSION="1.9.5"
+JSONCPP_VERSION="1.9.6"  # Even newer version
 JSONCPP_SOURCE_DIR="$BUILD_DIR/jsoncpp-$JSONCPP_VERSION-src"
 INSTALL_DIR="$BUILD_DIR/jsoncpp-$JSONCPP_VERSION"
 
@@ -30,7 +30,7 @@ log_error() {
 }
 
 log_info "************************************************************"
-log_info "Start building jsoncpp..."
+log_info "Start building jsoncpp (compatibility mode)..."
 log_info "."
 log_info "-------------------compile jsoncpp-------------------"
 log_info "."
@@ -49,28 +49,28 @@ fi
 if [ ! -d "jsoncpp-$JSONCPP_VERSION-src" ]; then
     log_info "Extracting jsoncpp..."
     tar -xzf "jsoncpp-$JSONCPP_VERSION.tar.gz"
-    # Move to source directory with different name to avoid conflicts
     mv "jsoncpp-$JSONCPP_VERSION" "jsoncpp-$JSONCPP_VERSION-src"
 fi
 
 cd "jsoncpp-$JSONCPP_VERSION-src"
 
-log_info "build jsoncpp, please wait..."
-log_info "Compiling jsoncpp..."
+log_info "build jsoncpp (compatibility), please wait..."
+log_info "Compiling jsoncpp with maximum compatibility..."
 
 # Create build directory
 mkdir -p build
 cd build
 
-# Configure with CMake
-log_info "Configuring jsoncpp with CMake..."
-# Add compiler flags to handle modern GCC strictness
+# Configure with maximum compatibility flags
+log_info "Configuring jsoncpp with CMake (compatibility mode)..."
 cmake -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_BUILD_TYPE=Release \
       -DJSONCPP_WITH_TESTS=OFF \
       -DJSONCPP_WITH_POST_BUILD_UNITTEST=OFF \
       -DBUILD_SHARED_LIBS=ON \
-      -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations -Wno-implicit-fallthrough" \
+      -DCMAKE_CXX_STANDARD=11 \
+      -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations -Wno-implicit-fallthrough -Wno-error -w" \
+      -DCMAKE_C_FLAGS="-Wno-error -w" \
       ..
 
 log_info "Building jsoncpp..."
@@ -85,23 +85,9 @@ mkdir -p "$INSTALL_DIR/bin"
 mkdir -p "$INSTALL_DIR/lib"
 mkdir -p "$INSTALL_DIR/include/json"
 
-# Verify installation
-if [ -f "$INSTALL_DIR/lib/libjsoncpp.so" ] || [ -f "$INSTALL_DIR/lib/libjsoncpp.a" ]; then
-    log_info "jsoncpp libraries found in $INSTALL_DIR/lib"
-fi
-
-if [ -d "$INSTALL_DIR/include/json" ]; then
-    log_info "jsoncpp headers found in $INSTALL_DIR/include/json"
-fi
-
-# Also check for alternative library naming
-if [ -f "$INSTALL_DIR/lib/libjson.so" ] || [ -f "$INSTALL_DIR/lib/libjson.a" ]; then
-    log_info "jsoncpp libraries found with alternative naming"
-fi
-
 cd "$BUILD_DIR"
 
-log_info "build jsoncpp end"
+log_info "build jsoncpp (compatibility) end"
 
 # Check for build success
 build_failed=false
@@ -116,12 +102,12 @@ if [ ! -f "$INSTALL_DIR/include/json/json.h" ] && [ ! -f "$INSTALL_DIR/include/j
 fi
 
 if [ "$build_failed" = true ]; then
-    log_error "build jsoncpp fail"
-    echo "build jsoncpp fail"
+    log_error "build jsoncpp (compatibility) fail"
+    echo "build jsoncpp (compatibility) fail"
     exit_code=1
 else
-    log_info "build jsoncpp success"
-    echo "build jsoncpp success"
+    log_info "build jsoncpp (compatibility) success"
+    echo "build jsoncpp (compatibility) success"
     
     # List what was actually built
     log_info "jsoncpp libraries built:"

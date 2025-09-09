@@ -73,7 +73,7 @@ ADD_DEFINITIONS(-DLINUX)
 SET(THIRD_PARTY_INCLUDE 
     ${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/curl-7.52.1/include
 	${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/ACE-6.2.4/include
-    ${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/jsoncpp-0.10.5/include
+     ${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/jsoncpp-1.9.5/include
 	${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/openssl-1.0.2j/include)
 	
 	
@@ -96,11 +96,11 @@ INCLUDE_DIRECTORIES(
 # Target link directories
 # --------------------------------------------------------------------------------
 LINK_DIRECTORIES(
-${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/jsoncpp-0.10.5/lib
+${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/jsoncpp-1.9.5/lib
 ${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/openssl-1.0.2j/lib
 ${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/curl-7.52.1/lib
 ${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/ACE-6.2.4/lib
-${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/libssh2-1.7.0/lib
+${PROJECT_SOURCE_DIR}/../../../../third_party_groupware/build_scripts/build/libssh2-1.10.0/lib
 ${PROJECT_SOURCE_DIR}/securec/lib
 ${PROJECT_SOURCE_DIR}/TlvCom/lib)
 

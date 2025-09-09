@@ -99,7 +99,11 @@ check_build_result "ACE" "build ACE fail"
 echo ""
 echo "Step 6/7: Building jsoncpp..."
 log_info "Building jsoncpp..."
-./build_jsoncpp.sh
+./build_jsoncpp.sh || {
+    echo "Regular jsoncpp build failed, trying compatibility build..."
+    log_info "Regular jsoncpp build failed, trying compatibility build..."
+    ./build_jsoncpp_compat.sh
+}
 check_build_result "jsoncpp" "build jsoncpp fail"
 
 # Setup TinyXML
